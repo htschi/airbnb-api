@@ -16,7 +16,7 @@ app.use(logger('tiny'))
 app.use(
   cors({
     credentials: true,
-    origin: 'http://localhost:3000'
+    origin: 'http://localhost:3000',
   })
 )
 app.use(express.json())
@@ -53,7 +53,7 @@ app.use((err, req, res, next) => {
   // Respond with an error
   res.status(err.status || 500)
   res.send({
-    message: err
+    message: err,
   })
 })
 
