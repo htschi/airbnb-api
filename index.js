@@ -14,6 +14,7 @@ const Bookings = require('./models/bookings')
 const Houses = require('./models/houses')
 const Reviews = require('./models/reviews')
 const Users = require('./models/users')
+const houses = require('./models/houses')
 
 // Build the App
 const app = express()
@@ -31,6 +32,17 @@ app.use(express.urlencoded({ extended: false }))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(cookieParser())
+
+function isAuthenticated(req, res, next) {
+  // Check if the user is authenticated
+  if (req.isAuthenticated()) {
+    // User is authenticated, proceed to the next middleware or route handler
+    return next()
+  } else {
+    console.log('Not authorized')
+    res.status(401).json({ error: 'Not authorized' })
+  }
+}
 
 // Database
 mongoose.connect(
@@ -61,12 +73,17 @@ app.get('/houses/:id', async (req, res) => {
   res.send('Hello from Houses id')
 })
 
-app.post('/houses', async (req, res) => {
-  console.log(req.body)
-  res.send('Hello to Houses')
+app.post('/houses', isAuthenticated, async (req, res) => {
+  try {
+    req.body.host = req.user._id
+    let houses = await Houses.create(req.body)
+    res.send(houses)
+  } catch (err) {
+    throw err
+  }
 })
 
-app.patch('/houses/:id', async (req, res) => {
+app.patch('/houses/:id', isAuthenticated, async (req, res) => {
   console.log(req.params.id)
   res.send('Hello from Houses id')
 })
@@ -77,18 +94,28 @@ app.get('/bookings', async (req, res) => {
   res.send('Hello from Bookings')
 })
 
+app.post('/bookings', isAuthenticated, async (req, res) => {
+  console.log(req.query)
+  res.send('Hello to Bookings')
+})
+
 // Reviews
 app.get('/reviews', async (req, res) => {
   console.log(req.query)
   res.send('Hello from Reviews')
 })
 
-app.get('/profile', async (req, res) => {
+app.post('/reviews', isAuthenticated, async (req, res) => {
+  console.log(req.query)
+  res.send('Hello to Reviews')
+})
+
+app.get('/profile', isAuthenticated, async (req, res) => {
   console.log(req.query)
   res.send('Hello from Profile')
 })
 
-app.patch('/profile', async (req, res) => {
+app.patch('/profile', isAuthenticated, async (req, res) => {
   console.log(req.query)
   res.send('Hello from Profile')
 })
@@ -132,7 +159,7 @@ app.post('/signup', async (req, res) => {
   }
 })
 
-app.get('/logout', async (req, res) => {
+app.get('/logout', (req, res) => {
   req.logout(function (err) {
     if (err) {
       return next(err)
