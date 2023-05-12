@@ -41,6 +41,7 @@ function isAuthenticated(req, res, next) {
   } else {
     console.log('Not authorized')
     res.status(401).json({ error: 'Not authorized' })
+    res.redirect('/login')
   }
 }
 
@@ -64,18 +65,53 @@ app.get('/', async (req, res) => {
 
 // Houses
 app.get('/houses', async (req, res) => {
-  console.log(req.query)
-  res.send('Hello from Houses')
+  try {
+    const rooms = req.query.rooms
+    const price = req.query.price
+    // const sort = req.query.sort
+    const location = req.query.location
+    const name = req.query.name
+
+    // Empty query to collect the data we have
+    const query = {}
+
+    if (rooms) {
+      query.rooms = rooms
+    }
+    if (price) {
+      query.price = price
+    }
+    // // if (sort) {
+    // //   query.sort = sort
+    // // }
+    if (location) {
+      query.location = location
+    }
+    if (name) {
+      query.name = name
+    }
+
+    // use the query to find the result in the database, houselist is the arr with the result
+    // query is the arr with the searching inputs
+    let housesList = await Houses.find(query)
+    res.send(housesList)
+  } catch (err) {
+    throw err
+  }
 })
 
+// not working
 app.get('/houses/:id', async (req, res) => {
-  console.log(req.params.id)
-  res.send('Hello from Houses id')
+  let oneHouse = await Houses.findById(req.params.id).populate('host')
+  console.log(oneHouse)
+  res.send(oneHouse)
 })
 
 app.post('/houses', isAuthenticated, async (req, res) => {
   try {
+    // add user id to the
     req.body.host = req.user._id
+    // create house object
     let houses = await Houses.create(req.body)
     res.send(houses)
   } catch (err) {
