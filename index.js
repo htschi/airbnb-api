@@ -100,11 +100,19 @@ app.get('/houses', async (req, res) => {
   }
 })
 
-// not working
+// working
 app.get('/houses/:id', async (req, res) => {
-  let oneHouse = await Houses.findById(req.params.id).populate('host')
-  console.log(oneHouse)
-  res.send(oneHouse)
+  try {
+    console.log('hi from back end id')
+    let oneHouse = await Houses.findById(req.params.id).populate(
+      'host',
+      'name avatar'
+    )
+    console.log(oneHouse)
+    res.send(oneHouse)
+  } catch (err) {
+    console.log(err)
+  }
 })
 
 app.post('/houses', isAuthenticated, async (req, res) => {
@@ -121,6 +129,7 @@ app.post('/houses', isAuthenticated, async (req, res) => {
 
 app.patch('/houses/:id', isAuthenticated, async (req, res) => {
   console.log(req.params.id)
+
   res.send('Hello from Houses id')
 })
 
