@@ -155,9 +155,11 @@ app.post('/bookings/:id', async (req, res) => {
 })
 
 // Reviews
-app.get('/reviews', async (req, res) => {
-  console.log(req.query)
-  res.send('Hello from Reviews')
+app.get('/reviews/:id', async (req, res) => {
+  let reviews = await Reviews.find({
+    house: req.params.id,
+  })
+  res.send(reviews)
 })
 
 app.post('/reviews/:id', isAuthenticated, async (req, res) => {
