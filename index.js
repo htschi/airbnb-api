@@ -7,9 +7,9 @@ const logger = require('morgan')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const { DB_URL } = require('./db')
+const date = new Date()
 
 // Import Mongoose Models
-
 const Bookings = require('./models/bookings')
 const Houses = require('./models/houses')
 const Reviews = require('./models/reviews')
@@ -90,7 +90,6 @@ app.get('/houses', async (req, res) => {
     if (name) {
       query.name = name
     }
-
     // use the query to find the result in the database, houselist is the arr with the result
     // query is the arr with the searching inputs
     let housesList = await Houses.find(query)
@@ -103,12 +102,10 @@ app.get('/houses', async (req, res) => {
 // working
 app.get('/houses/:id', async (req, res) => {
   try {
-    console.log('hi from back end id')
     let oneHouse = await Houses.findById(req.params.id).populate(
       'host',
       'name avatar'
     )
-    console.log(oneHouse)
     res.send(oneHouse)
   } catch (err) {
     console.log(err)
@@ -118,7 +115,7 @@ app.get('/houses/:id', async (req, res) => {
 app.post('/houses', isAuthenticated, async (req, res) => {
   try {
     // add user id to the
-    req.body.host = req.user._id
+    req.body.author = req.user._id
     // create house object
     let houses = await Houses.create(req.body)
     res.send(houses)
@@ -129,19 +126,32 @@ app.post('/houses', isAuthenticated, async (req, res) => {
 
 app.patch('/houses/:id', isAuthenticated, async (req, res) => {
   console.log(req.params.id)
-
   res.send('Hello from Houses id')
 })
 
-// Bookings
-app.get('/bookings', async (req, res) => {
-  console.log(req.query)
-  res.send('Hello from Bookings')
+// Bookings, not working with the key author
+app.get('/bookings/:id', async (req, res) => {
+  try {
+    let booking = await Bookings.find({
+      house: req.params.id,
+    })
+    res.send(booking)
+  } catch (err) {
+    throw err
+  }
 })
 
-app.post('/bookings', isAuthenticated, async (req, res) => {
-  console.log(req.query)
-  res.send('Hello to Bookings')
+app.post('/bookings/:id', async (req, res) => {
+  try {
+    // add user+house id to the req.body
+    req.body.author = req.user._id
+    req.body.house = req.params.id
+    req.body.date = date.toISOString()
+    let booking = Bookings.create(req.body)
+    res.send(booking)
+  } catch (err) {
+    throw err
+  }
 })
 
 // Reviews
@@ -150,9 +160,13 @@ app.get('/reviews', async (req, res) => {
   res.send('Hello from Reviews')
 })
 
-app.post('/reviews', isAuthenticated, async (req, res) => {
-  console.log(req.query)
-  res.send('Hello to Reviews')
+app.post('/reviews/:id', isAuthenticated, async (req, res) => {
+  req.body.author = req.user._id
+  req.body.avatar = req.user.avatar
+  req.body.house = req.params.id
+  req.body.date = date.toISOString()
+  let review = await Reviews.create(req.body)
+  res.send(review)
 })
 
 app.get('/profile', isAuthenticated, async (req, res) => {
