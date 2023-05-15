@@ -171,9 +171,9 @@ app.post('/reviews/:id', isAuthenticated, async (req, res) => {
   res.send(review)
 })
 
-app.get('/profile', isAuthenticated, async (req, res) => {
-  console.log(req.query)
-  res.send('Hello from Profile')
+app.get('/profile/:id', isAuthenticated, async (req, res) => {
+  let loggedUser = await Users.findById(req.user._id)
+  res.send(loggedUser)
 })
 
 app.patch('/profile', isAuthenticated, async (req, res) => {
